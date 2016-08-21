@@ -43,7 +43,7 @@ struct juice
     }
 };
 
-// As `static_if` and `constexpr if` require a constant expression as
+// As `static_if` and `if constexpr` require a constant expression as
 // their branching condition, let's define some `constexpr bool`
 // variables to categorize the foods into "solid" and "liquid".
 

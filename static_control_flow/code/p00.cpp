@@ -51,7 +51,7 @@
 // "static if" is a name given to the compile-time counterpart of the
 // `if` statement - its inclusion in the C++ language has been
 // controversially proposed multiple times, but it has found a home
-// in other languages. (C++17 will finally introduce a compile-time 
+// in other languages. (C++17 will finally introduce a compile-time
 // branching construct that we're going to analyze in this talk.)
 
 // C++ developers often feel that the functional purity of template
@@ -61,7 +61,7 @@
 // In this talk, we'll analyze and implement two powerful compile-time
 // C++14 control flow constructs: `static_if` and `static_for`.
 
-// Before doing that, we'll look at some examples of `static if` in 
+// Before doing that, we'll look at some examples of `static if` in
 // action in other languages, and at the new `if constexpr` construct.
 
 // An example of a language with `static if` is "D":

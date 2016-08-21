@@ -13,17 +13,17 @@
 
 // This paper was originally created as a "resurrection" of the very
 // controversial previous "static if" N3322 and N3329 proposals:
-// 
+//
 // open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3322.pdf
 // {"A Preliminary Proposal for a Static if" - Walter E. Brown}
 //
-// open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3329.pdf 
+// open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3329.pdf
 // {"static if declaration" - W. Bright, H. Sutter, A. Alexandrescu}
 
 
 
 // The above proposals were considered harmful in N3613, due to their
-// unintuitive scope rules and inconsistency with the rest of the 
+// unintuitive scope rules and inconsistency with the rest of the
 // language:
 //
 // open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3613.pdf
@@ -35,7 +35,7 @@
 // `if` construct with familiar scope rules began to gain traction.
 // Eventually, the proposed syntax and standard wording was revised
 // multiple times in P0128R0, P0128R1, P0292R0, and P0292R1.
-// 
+//
 
 // The final revision, P0292R2, was accepted for C++17:
 //
@@ -49,11 +49,11 @@
 template <class T, class... Args>
 unique_ptr<T> make_unique(Args&&... args)
 {
-    if constexpr(is_constructible_v<T, Args...>) 
+    if constexpr(is_constructible_v<T, Args...>)
     {
         return unique_ptr<T>(new T(forward<Args>(args)...));
-    } 
-    else 
+    }
+    else
     {
         return unique_ptr<T>(new T{forward<Args>(args)...});
     }
@@ -63,15 +63,15 @@ unique_ptr<T> make_unique(Args&&... args)
 // The proposed `constexpr if` has to follow these rules:
 /*
     * Restricted to block scopes.
-    
+
     * Always going to establish a new scope.
 
-    * Required that there exists values of the condition so 
+    * Required that there exists values of the condition so
       that either condition branch is well-formed.
 */
 
 // The above rules deal with the controversial ideas of N3613, making
-// `constexpr if` an intuitive and familiar compile-time version of 
+// `constexpr if` an intuitive and familiar compile-time version of
 // the regular `if` statement.
 
 // Here's an example of a more complex branch:
@@ -86,10 +86,10 @@ unique_ptr<T> make_unique(Args&&... args)
         statement3;
 */
 
-// `constexpr_if` is part of the C++17 standard...
+// `if constexpr` is part of the C++17 standard...
 // ...but you don't have to wait for your compiler to implement it!
-// It turns out that we can create an equivalent construct with C++14 
-// language features, with, unfortunately, a slightly less enticing 
+// It turns out that we can create an equivalent construct with C++14
+// language features, with, unfortunately, a slightly less enticing
 // syntax.
 
 // Let's see how in the next code segment.
