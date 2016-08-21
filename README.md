@@ -16,6 +16,8 @@ Repository for my [CppCon 2016](https://cppcon.org) sessions.
 * Decide:
     * Introduce `if constexpr(...)` before `static_for`?
 
+* If constexpr or constexpr if?
+* Add Bloomberg notice
 * Review everything
 * Write `if constexpr(...)` code segments
 * Rebuild `.asm` files

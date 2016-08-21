@@ -13,11 +13,25 @@
 // |                                               |
 // +-----------------------------------------------+
 
+// Talk overview (TODO):
+/*
+    p00:    * What is "static" control flow?
+
+    p01:    * History of "static if" in C++.
+            * C++17: `if constexpr`.
+
+    p02:    * `static_if` example.
+
+    p03:    * `static_if` implementation.
+
+    p04:    * Additional `static_if` examples.
+*/
+
 // Talk overview:
 /*
     * Branching at compile-time.
         * "static" branching overview.
-        * `constexpr_if` proposal overview.
+        * `if constexpr` overview.
         * `static_if` implementation and examples.
 
     * Iteration at compile-time.
@@ -37,17 +51,18 @@
 // "static if" is a name given to the compile-time counterpart of the
 // `if` statement - its inclusion in the C++ language has been
 // controversially proposed multiple times, but it has found a home
-// in other languages.
+// in other languages. (C++17 will finally introduce a compile-time 
+// branching construct that we're going to analyze in this talk.)
 
 // C++ developers often feel that the functional purity of template
 // metaprogramming and its lack of explicit control flow options make
 // compile-time code harder to implement and to reason about.
 
 // In this talk, we'll analyze and implement two powerful compile-time
-// control flow constructs: `static_if` and `static_for`.
+// C++14 control flow constructs: `static_if` and `static_for`.
 
-// Before doing that, we'll analyze the current state of the proposals
-// for similar constructs and some examples of `static if` in action.
+// Before doing that, we'll look at some examples of `static if` in 
+// action in other languages, and at the new `if constexpr` construct.
 
 // An example of a language with `static if` is "D":
 
@@ -145,7 +160,7 @@ make_unique(Args&&... args)
 template <class T, class... Args>
 auto make_unique(Args&&... args)
 {
-    static_if(is_constructible_v<T, Args...>)
+    if constexpr(is_constructible_v<T, Args...>)
     {
         return unique_ptr<T>(new T(forward<Args>(args)...));
     }
@@ -156,11 +171,11 @@ auto make_unique(Args&&... args)
 }
 */
 
-// The above examples were not written by me: they are part of a
-// proposal for a "static if"-like construct, likely to be accepted
-// for the C++17 standard.
+// The above examples were not created by me: they are part of a
+// series of proposals that led to the inclusion of `if constexpr` in
+// the upcoming C++17 standard.
 
-// Let's learn more about it in the next code segment.
+// Let's learn more about that in the next code segment.
 
 int main()
 {
