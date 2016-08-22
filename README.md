@@ -16,6 +16,8 @@ Repository for my [CppCon 2016](https://cppcon.org) sessions.
 * Decide:
     * Introduce `if constexpr(...)` before `static_for`?
 
+* Check TODO on private repo
+
 * TODO: convert first parts to slides (?)
 		or everything to slides (?)
 
