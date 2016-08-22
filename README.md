@@ -21,6 +21,19 @@ Repository for my [CppCon 2016](https://cppcon.org) sessions.
 * TODO: convert first parts to slides (?)
 		or everything to slides (?)
 
+* Talk overview slide
+	* What is static control flow
+	* Branching
+		* C++17: If constexpr
+		* C++14: static_if
+			* Implementation
+	* Iteration 
+		* for_each_argument
+		* static_for
+
+* Get rid of y-combinator? (add in extra folder)
+
+
 * If constexpr or constexpr if?
 * Add Bloomberg notice
 * Review everything
