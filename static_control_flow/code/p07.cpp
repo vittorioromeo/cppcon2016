@@ -10,12 +10,12 @@
 #include "./impl/static_if.hpp"
 #include "./impl/for_args.hpp"
 
-// In this code segment we'll implement a simple example that shows 
+// In this code segment we'll implement a simple example that shows
 // how powerful `for_args` can be when combined with the previously
 // implemented `static_if`.
 
 // Something we often want to do is iterate over types or manipulate
-// types directly. We need to somehow find a way to pass types as 
+// types directly. We need to somehow find a way to pass types as
 // values.
 
 // To solve the issue, we can define a `type<T>` that wraps a type
@@ -106,12 +106,12 @@ int main()
 // however, many annoying limitations:
 /*
     * It is not possible to get the current iteration index.
-    
+
     * It is not possible to produce a result value.
- 
+
     * There is no equivalent of `break;` and `continue;`.
 */
 
-// Let's look at a complete compile-time `for...each` loop counterpart 
-// in the next code segment, which can be entirely implemented in 
+// Let's look at a complete compile-time `for...each` loop counterpart
+// in the next code segment, which can be entirely implemented in
 // C++14.
