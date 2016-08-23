@@ -20,10 +20,6 @@ Repository for my [CppCon 2016](https://cppcon.org) sessions.
 
 * TODO: convert everything to slides (?)
 
-
-* Get rid of y-combinator? (add in extra folder)
-
-
 * If constexpr or constexpr if?
 * Add Bloomberg notice
 * Review everything

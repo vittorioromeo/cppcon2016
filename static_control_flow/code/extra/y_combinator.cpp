@@ -7,8 +7,8 @@
 #include <iostream>
 #include <functional>
 #include <type_traits>
-#include "./impl/static_if.hpp"
-#include "./impl/static_for_state.hpp"
+#include "../impl/static_if.hpp"
+#include "../impl/static_for_state.hpp"
 
 // As a final touch, we'll use a Y combinator to deal with lambda
 // recursion, as our current solution is not very elegant:
