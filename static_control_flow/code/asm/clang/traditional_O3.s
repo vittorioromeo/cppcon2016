@@ -1,5 +1,5 @@
 	.text
-	.file	"./traditional.cpp"
+	.file	"traditional.cpp"
 	.globl	_Z7consumeRVi
 	.align	16, 0x90
 	.type	_Z7consumeRVi,@function
@@ -77,5 +77,5 @@ main:                                   # @main
 	.cfi_endproc
 
 
-	.ident	"clang version 3.7.1 (tags/RELEASE_371/final)"
+	.ident	"clang version 3.8.1 (tags/RELEASE_381/final)"
 	.section	".note.GNU-stack","",@progbits

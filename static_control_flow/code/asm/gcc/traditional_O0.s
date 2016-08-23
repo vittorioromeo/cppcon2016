@@ -16,7 +16,7 @@ _ZStL6ignore:
 	.globl	_Z7consumeRVi
 	.type	_Z7consumeRVi, @function
 _Z7consumeRVi:
-.LFB1290:
+.LFB1347:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -30,12 +30,12 @@ _Z7consumeRVi:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE1290:
+.LFE1347:
 	.size	_Z7consumeRVi, .-_Z7consumeRVi
 	.globl	_Z5test0v
 	.type	_Z5test0v, @function
 _Z5test0v:
-.LFB1291:
+.LFB1348:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -71,12 +71,12 @@ _Z5test0v:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE1291:
+.LFE1348:
 	.size	_Z5test0v, .-_Z5test0v
 	.globl	main
 	.type	main, @function
 main:
-.LFB1292:
+.LFB1349:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -93,7 +93,7 @@ main:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE1292:
+.LFE1349:
 	.size	main, .-main
-	.ident	"GCC: (GNU) 5.3.0"
+	.ident	"GCC: (GNU) 6.1.1 20160802"
 	.section	.note.GNU-stack,"",@progbits

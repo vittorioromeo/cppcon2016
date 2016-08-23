@@ -4,83 +4,114 @@
 
 
 
+#include <tuple>
+#include <array>
+#include <vector>
 #include "./impl/static_if.hpp"
+#include "./impl/for_args.hpp"
 
-// Here's an additional example of something I've encountered during
-// coding: I was writing a resizable generic buffer, and had to deal
-// with move constructors:
+// In this code segment we'll implement a simple example that shows
+// how powerful `for_args` can be when combined with the previously
+// implemented `static_if`.
 
-template <typename T, typename TAllocator>
-void grow(std::size_t old_capacity, std::size_t /* new_capacity */)
+// Something we often want to do is iterate over types or manipulate
+// types directly. We need to somehow find a way to pass types as
+// values.
+
+// To solve the issue, we can define a `type<T>` that wraps a type
+// in a value we can easily manipulate.
+
+template <typename T>
+struct type_
 {
-    /*
-    assert(old_capacity <= new_capacity);
-    auto new_data(
-        allocator_traits::allocate(_allocator, new_capacity));
-    */
+    using type = T;
+};
 
-    T* old_data;
-    T* new_data;
+template <typename T>
+constexpr type_<T> type{};
 
-    // Move existing items to new data.
-    for(std::size_t i(0); i < old_capacity; ++i)
-    {
-        static_if(std::is_move_constructible<T>{})
-            .then([&](auto& xold_data)
-                {
-                    new(&new_data[i]) T(std::move(xold_data[i]));
-                })
-            .else_([&](auto& xold_data)
-                {
-                    new(&new_data[i]) T(xold_data[i]);
-                })(old_data);
-    }
+// Think of `type<T>` as an `std::integral_constant` intended for
+// types instead of values.
 
-    /*
-    destroy_and_deallocate(old_capacity);
-    _data = new_data;
-    */
-}
+// To unwrap the stored type, we'll define an `unwrap` type alias:
+template <typename T>
+using unwrap = typename T::type;
 
-// `static_if` is also extremely useful when writing compile-time
-// data structures in a type-value encoding oriented manner.
-
-// Here's part of a compile-time "left fold" implementation that makes
-// use of `static_if` to stop the recursion.
-
-template <typename TList, std::size_t... TIs>
-auto foldl_step(TList ll)
+// Let's use `type<T>` and `for_args` to instantiate various types
+// and execute a test function with them:
+void example0()
 {
-    return [=](auto self, auto y_curr, auto yi, auto... yis)
-    {
-        // Compute next folding step.
-        auto next_acc(                                  // .
-            f(yi, y_curr, at(std::get<TIs>(ll), yi)...) // .
-            );
+    // Example: manipulating several buffers at once.
 
-        // Check if there are any more items inside the list.
-        return static_if(bool_v<(sizeof...(yis) > 0)>)
-            .then([=](auto z_self)
-                {
-                    // Recursive case.
-                    return z_self(next_acc, yis...);
-                })
-            .else_([=](auto)
-                {
-                    // Base case.
-                    return next_acc;
-                })(self);
+    std::tuple<             // .
+        std::vector<int>,   // .
+        std::vector<float>, // .
+        std::vector<double> // .
+        > buffers;
+
+    auto resize_all_buffers = [&buffers](auto new_size)
+    {
+        for_args(
+            [&buffers, new_size](auto t)
+            {
+                using unwrapped = unwrap<decltype(t)>;
+                using vector_type = std::vector<unwrapped>;
+
+                std::get<vector_type>(buffers).resize(new_size);
+            },
+            type<int>, type<float>, type<double>);
     };
+
+    resize_all_buffers(100);
 }
 
-// Being able to branch in an "almost imperative" way at compile-time
-// is extremely useful and superior (in terms of convencience and
-// readability) to explicit template specialization in many contexts.
+// Example - combining this functionality with `static_if`:
+void example1()
+{
+    // Example: calling diffrent functions depending on a type size
+    // threshold.
 
-// Another common operation in imperative code is the "for each" loop.
-// Let's see how we could implement something similar in compile-time
-// contexts in the next code segment.
+    auto init_small_object_storage = [](auto)
+    { /* ... */ };
+
+    auto init_big_object_storage = [](auto)
+    { /* ... */ };
+
+    for_args(
+        [&](auto t)
+        {
+            using unwrapped = unwrap<decltype(t)>;
+
+            static_if(bool_v<(sizeof(unwrapped) < 16)>)
+                .then([&]
+                    {
+                        init_small_object_storage(t);
+                    })
+                .else_([&]
+                    {
+                        init_big_object_storage(t);
+                    })();
+        },
+        type<int>, type<float>, type<double>, // .
+        type<std::array<double, 16>>);
+}
 
 int main()
 {
+    example0();
+    example1();
 }
+
+// Iterating over a compile-time collection using `for_args` has,
+// however, many annoying limitations:
+/*
+    * It is not possible to get the current iteration index.
+
+    * It is not possible to produce a result value.
+
+    * No `break` and `continue`.
+*/
+
+// Let's look at a complete compile-time `for...each` loop counterpart
+// in the next code segment, which can be entirely implemented in
+// C++14.

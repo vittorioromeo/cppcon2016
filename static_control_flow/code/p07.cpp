@@ -4,114 +4,74 @@
 
 
 
-#include <tuple>
-#include <array>
-#include <vector>
-#include "./impl/static_if.hpp"
-#include "./impl/for_args.hpp"
+// For our last code segment, let's take a look at the generated
+// assembly and at existing production-ready solutions.
 
-// In this code segment we'll implement a simple example that shows
-// how powerful `for_args` can be when combined with the previously
-// implemented `static_if`.
+// Test files:
+// * `./asm/traditional.cpp`
+// * `./asm/staticfor.cpp`
 
-// Something we often want to do is iterate over types or manipulate
-// types directly. We need to somehow find a way to pass types as
-// values.
+// "g++ 5.3.0" produces identical assembly from `-O1` onwards.
+// "g++ 6.1.1" produces identical assembly from `-O1` onwards.
+// "clang++ 3.7.1" produces identical assembly from `-O2` onwards.
+// "clang++ 3.8.1" produces identical assembly from `-O2` onwards.
 
-// To solve the issue, we can define a `type<T>` that wraps a type
-// in a value we can easily manipulate.
+// Similar results were obtained for `static_if` as well.
+// Both constructs are effectively "cost-free abstractions".
 
-template <typename T>
-struct type_
+// You can fork and use the implementations shown here, create your
+// own from scratch, or use any of the following production-ready
+// solutions.
+
+// Louis Dionne's "boost::hana", which hopefully needs no
+// introduction, has extremely powerful constructs both for
+// compile-time iteration and branching.
+// Here are some (very basic) examples:
+/*
+    // `hana::eval_if` essentially works like our `static_if`.
+    template <typename N>
+    auto fact(N n) {
+        return hana::eval_if(n == hana::int_c<0>,
+            [] { return hana::int_c<1>; },
+            [=](auto _) { return n * fact(_(n) - hana::int_c<1>); }
+        );
+    }
+
+    // `hana::for_each` can be used to iterate over an heterogeneous
+    // compile-time sequence.
+    std::stringstream ss;
+    hana::for_each(hana::make_tuple(0, '1', "234", 5.5), [&](auto x){
+        ss << x << ' ';
+    });
+*/
+
+// Paul Fultz II's "fit" modern function utility library can be
+// used to replicate `static_if`'s functionality. Here's an example
+// provided by the author himself:
+/*
+template<typename T>
+void decrement_kindof(T& value)
 {
-    using type = T;
-};
-
-template <typename T>
-constexpr type_<T> type{};
-
-// Think of `type<T>` as an `std::integral_constant` intended for
-// types instead of values.
-
-// To unwrap the stored type, we'll define an `unwrap` type alias:
-template <typename T>
-using unwrap = typename T::type;
-
-// Let's use `type<T>` and `for_args` to instantiate various types
-// and execute a test function with them:
-void example0()
-{
-    // Example: manipulating several buffers at once.
-
-    std::tuple<             // .
-        std::vector<int>,   // .
-        std::vector<float>, // .
-        std::vector<double> // .
-        > buffers;
-
-    auto resize_all_buffers = [&buffers](auto new_size)
-    {
-        for_args(
-            [&buffers, new_size](auto t)
-            {
-                using unwrapped = unwrap<decltype(t)>;
-                using vector_type = std::vector<unwrapped>;
-
-                std::get<vector_type>(buffers).resize(new_size);
-            },
-            type<int>, type<float>, type<double>);
-    };
-
-    resize_all_buffers(100);
+    eval(conditional(
+        if_(std::is_same<std::string, T>())([&](auto id){
+            id(value).pop_back();
+        }),
+        [&](auto id){
+            --id(value);
+        }
+    ));
 }
+*/
 
-// Example - combining this functionality with `static_if`:
-void example1()
-{
-    // Example: calling diffrent functions depending on a type size
-    // threshold.
-
-    auto init_small_object_storage = [](auto)
-    { /* ... */ };
-
-    auto init_big_object_storage = [](auto)
-    { /* ... */ };
-
-    for_args(
-        [&](auto t)
-        {
-            using unwrapped = unwrap<decltype(t)>;
-
-            static_if(bool_v<(sizeof(unwrapped) < 16)>)
-                .then([&]
-                    {
-                        init_small_object_storage(t);
-                    })
-                .else_([&]
-                    {
-                        init_big_object_storage(t);
-                    })();
-        },
-        type<int>, type<float>, type<double>, // .
-        type<std::array<double, 16>>);
-}
+// By using `fit::compress` and `fit::apply` it's also very easy
+// to replicate `static_for`'s functionality. More powerful results
+// can be achieved by properly using all the library's features.
+/*
+    compress(apply, for_body)(x, y, z)
+    // ...is equivalent to:
+    for_body(x)(y)(z)
+*/
 
 int main()
 {
-    example0();
-    example1();
 }
-
-// Iterating over a compile-time collection using `for_args` has,
-// however, many annoying limitations:
-/*
-    * It is not possible to get the current iteration index.
-
-    * It is not possible to produce a result value.
-
-    * There is no equivalent of `break;` and `continue;`.
-*/
-
-// Let's look at a complete compile-time `for...each` loop counterpart
-// in the next code segment, which can be entirely implemented in
-// C++14.

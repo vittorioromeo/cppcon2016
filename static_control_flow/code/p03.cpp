@@ -4,224 +4,104 @@
 
 
 
-#include <utility>
-#include <type_traits>
+#include <iostream>
+#include "./impl/fwd.hpp"
 
-// Let's implement `static_if`.
-// Firstly, let's define some utility macros/aliases.
-
-// The `FWD` macro is a simple wrapper for `std::forward` that avoids
-// unnecessary repetition.
-#define FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
-
-// To store boolean values in compile-time integral constants, we'll
-// use the `bool_` type alias...
-template <bool TX>
-using bool_ = std::integral_constant<bool, TX>;
-
-// ...and the the `bool_v` variable template.
-template <bool TX>
-constexpr bool_<TX> bool_v{};
-
-// (Note that C++17 will introduce `bool_constant`).
-
-// My `static_if` implementation was inspired by this article, written
-// by Baptiste Wicht:
-// baptiste-wicht.com/posts/2015/07/simulate-static_if-with-c11c14.html
-
-// ...and the comments on its reddit thread:
-// reddit.com/r/cpp/comments/3d46ns/simulate_static_if_with_c11c14/
-
-// ...and the following "CppCoreGuidelines" issue:
-// github.com/isocpp/CppCoreGuidelines/issues/353
-
-// The implementation is composed by the following elements:
-//
-// * An interface `static_if` function, that returns an instance of
-//   an helper struct.
-//
-// * The helper `static_if_impl` struct, which will allow `then` and
-//   `else_` chaining, and eventually return a "result" struct.
-//
-// * The result `static_if_result` struct, which will ignore other
-//   chaining calls and execute the matched branch.
-
-// The interface function will be called `static_if` and will take an
-// integral boolean constant as a parameter.
-
-template <typename TPredicate>
-auto static_if(TPredicate) noexcept;
-
-// We're passing `TPredicate` as a parameter, in line with the
-// type-value encoding style, to improve the syntax and allow type
-// deduction.
-
-// Our implementation will consist of a template struct that will be
-// specialized with the predicate's result.
-
-namespace impl
+template <typename TF, typename... Ts>
+auto for_args(TF&& f, Ts&&... xs)
 {
-    template <bool TPredicateResult>
-    struct static_if_impl;
+    return (void)std::initializer_list<int>{(f(FWD(xs)), 0)...};
 }
 
-// When calling `static_if`, we'll return a `static_if_impl` instance
-// that will allow the user to build the branching logic.
-
-// As soon as we find a matching branch, a `static_if_result` instance
-// will be returned and propagated through the branching hierarchy and
-// eventually call the correct function.
-
-namespace impl
+// Let's say we have a template `buffer` struct that takes a number
+// of bytes as a template parameter:
+template <std::size_t TBytes>
+struct buffer
 {
-    template <typename TFunctionToCall>
-    struct static_if_result;
-}
+    void allocate()
+    {
+        std::cout << "allocating " << TBytes << "\n";
+    }
 
-// To reiterate:
-//
-// * `static_if_impl`: will be returned by the `static_if` interface
-// function. Every instance represents a branch. The type will be
-// specialized depending on whether or not the predicate is matched.
-//
-// * `static_if_result`: will ignore subsequent chaining methods and
-// will inherit from the branch lambda in order to be "callable".
-// Will be returned by `static_if_impl<true>` if a `then` branch is
-// matched.
-// Will be returned by `static_if_impl<false>` if an `else_` branch is
-// matched.
+    void deallocate()
+    {
+        std::cout << "deallocating " << TBytes << "\n";
+    }
+};
 
-// Let's implement `static_if_impl`:
-namespace impl
+// We would like to run some tests with different amount of bytes.
+// If the byte count was a run-time parameter, we could do something
+// similar to this:
+/*
+void run_runtime_tests()
 {
-    // This function will instantiate a `static_if_result`, by
-    // forwarding `f` into it.
-    // It will be called by the `static_if_impl` specializations when
-    // a matching branch is reached.
-    template <typename TF>
-    auto make_static_if_result(TF&& f) noexcept;
-
-    // `true` specialization.
-    // Will give a "result" when a `then` branch is matched.
-    template <>
-    struct static_if_impl<true>
+    for(std::size_t n : {8, 16, 32, 64, 128, 256, 512, 1024})
     {
-        template <typename TF>
-        auto& else_(TF&&) noexcept
-        {
-            // Ignore `else_`, as the predicate is true.
-            return *this;
-        }
+        runtime_buffer b{n};
 
-        template <typename TPredicate>
-        auto& else_if(TPredicate) noexcept
-        {
-            // Ignore `else_if`, as the predicate is true.
-            return *this;
-        }
-
-        template <typename TF>
-        auto then(TF&& f) noexcept
-        {
-            // We found a matching branch, just make a result and
-            // ignore everything else.
-            return make_static_if_result(FWD(f));
-        }
-    };
-
-    // `false` specialization.
-    // Will give a "result" when an `else_` branch is matched.
-    // Will return a `static_if` when an `else_if` branch is matched.
-    // It will also provide a "dummy" call operator that will handle
-    // the case of a `static_if` without an `else_` branch.
-    template <>
-    struct static_if_impl<false>
-    {
-        template <typename TF>
-        auto& then(TF&&) noexcept
-        {
-            // Ignore `then`, as the predicate is false.
-            return *this;
-        }
-
-        template <typename TF>
-        auto else_(TF&& f) noexcept
-        {
-            // (Assuming that `else_` is after all `else_if` calls.)
-
-            // We found a matching branch, just make a result and
-            // ignore everything else.
-
-            return make_static_if_result(FWD(f));
-        }
-
-        template <typename TPredicate>
-        auto else_if(TPredicate) noexcept
-        {
-            return static_if(TPredicate{});
-        }
-
-        template <typename... Ts>
-        auto operator()(Ts&&...) noexcept
-        {
-            // If there are no `else` branches, we must ignore calls
-            // to a failed `static_if` matching.
-        }
-    };
-}
-
-// The last piece we need to complete our `static_if` implementation
-// is `static_if_result`.
-
-namespace impl
-{
-    // The result struct will inherit from `TFunctionToCall`, so that
-    // the final call operator in the user code will actually call the
-    // matched branch body.
-    template <typename TFunctionToCall>
-    struct static_if_result : TFunctionToCall
-    {
-        // Perfect-forward the function in the result instance.
-        template <typename TFFwd>
-        static_if_result(TFFwd&& f) noexcept : TFunctionToCall(FWD(f))
-        {
-        }
-
-        // Ignore everything, we found a result.
-        template <typename TF>
-        auto& then(TF&&) noexcept
-        {
-            return *this;
-        }
-
-        template <typename TPredicate>
-        auto& else_if(TPredicate) noexcept
-        {
-            return *this;
-        }
-
-        template <typename TF>
-        auto& else_(TF&&) noexcept
-        {
-            return *this;
-        }
-    };
-
-    template <typename TF>
-    auto make_static_if_result(TF&& f) noexcept
-    {
-        return static_if_result<TF>{FWD(f)};
+        b.allocate();
+        perform_test(b);
+        b.deallocate();
     }
 }
+*/
 
-template <typename TPredicate>
-auto static_if(TPredicate) noexcept
+// The above code snippet is very clear and straightforward... it
+// would be nice to be able to do the same for a compile-time buffer.
+
+// Turns out we can, thanks to "type-value encoding".
+// Remember the `bool_v` constexpr template variable?
+// We can do the same with `std::size_t`.
+
+template <std::size_t TX>
+using sz_ = std::integral_constant<std::size_t, TX>;
+
+template <std::size_t TX>
+constexpr sz_<TX> sz_v{};
+
+// We now have a way of wrapping arbitrary `std::size_t` in unique
+// compile-time types.
+
+// Using `for_args` we can iterate over those values:
+void run_compiletime_tests()
 {
-    return impl::static_if_impl<TPredicate{}>{};
+    for_args(
+        [](auto n)
+        {
+            buffer<n> b;
+
+            b.allocate();
+            // perform_test(b);
+            b.deallocate();
+        },
+        sz_v<8>, sz_v<16>, sz_v<32>, sz_v<64>, sz_v<128>, // .
+        sz_v<256>, sz_v<512>, sz_v<1024>);
 }
 
-// Let's see some additional examples in the next code segment.
+// It's not as pretty as the run-time version, but the code is very
+// clear and readable. It is easy to see that we're iterating over
+// a series of values and performing an action on them.
+
+// With some additional abstractions, the code could look like this:
+/*
+void run_compiletime_tests()
+{
+    for_values<std::size_t, 8, 16, 32, 64, 128, 256, 512, 1024>(
+        [](auto n)
+        {
+            buffer<n> b;
+
+            b.allocate();
+            // perform_test(b);
+            b.deallocate();
+        });
+}
+*/
+
+// In the next code segment, we'll see how `static_if` and `for_args`
+// work well together.
 
 int main()
 {
+    run_compiletime_tests();
 }
