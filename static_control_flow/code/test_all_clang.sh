@@ -1,5 +1,5 @@
 #!/bin/bash
 
 for x in ./*.cpp;
-do (./cerc $x);
+    do (./cerc $x);
 done
