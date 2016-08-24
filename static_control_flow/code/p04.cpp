@@ -4,114 +4,104 @@
 
 
 
-#include <tuple>
-#include <array>
-#include <vector>
-#include "./impl/static_if.hpp"
-#include "./impl/for_args.hpp"
+#include <iostream>
+#include "./impl/fwd.hpp"
 
-// In this code segment we'll implement a simple example that shows
-// how powerful `for_args` can be when combined with the previously
-// implemented `static_if`.
-
-// Something we often want to do is iterate over types or manipulate
-// types directly. We need to somehow find a way to pass types as
-// values.
-
-// To solve the issue, we can define a `type<T>` that wraps a type
-// in a value we can easily manipulate.
-
-template <typename T>
-struct type_
+template <typename TF, typename... Ts>
+auto for_args(TF&& f, Ts&&... xs)
 {
-    using type = T;
+    return (void)std::initializer_list<int>{(f(FWD(xs)), 0)...};
+}
+
+// Let's say we have a template `buffer` struct that takes a number
+// of bytes as a template parameter:
+template <std::size_t TBytes>
+struct buffer
+{
+    void allocate()
+    {
+        std::cout << "allocating " << TBytes << "\n";
+    }
+
+    void deallocate()
+    {
+        std::cout << "deallocating " << TBytes << "\n";
+    }
 };
 
-template <typename T>
-constexpr type_<T> type{};
-
-// Think of `type<T>` as an `std::integral_constant` intended for
-// types instead of values.
-
-// To unwrap the stored type, we'll define an `unwrap` type alias:
-template <typename T>
-using unwrap = typename T::type;
-
-// Let's use `type<T>` and `for_args` to instantiate various types
-// and execute a test function with them:
-void example0()
+// We would like to run some tests with different amount of bytes.
+// If the byte count was a run-time parameter, we could do something
+// similar to this:
+/*
+void run_runtime_tests()
 {
-    // Example: manipulating several buffers at once.
-
-    std::tuple<             // .
-        std::vector<int>,   // .
-        std::vector<float>, // .
-        std::vector<double> // .
-        > buffers;
-
-    auto resize_all_buffers = [&buffers](auto new_size)
+    for(std::size_t n : {8, 16, 32, 64, 128, 256, 512, 1024})
     {
-        for_args(
-            [&buffers, new_size](auto t)
-            {
-                using unwrapped = unwrap<decltype(t)>;
-                using vector_type = std::vector<unwrapped>;
+        runtime_buffer b{n};
 
-                std::get<vector_type>(buffers).resize(new_size);
-            },
-            type<int>, type<float>, type<double>);
-    };
-
-    resize_all_buffers(100);
+        b.allocate();
+        perform_test(b);
+        b.deallocate();
+    }
 }
+*/
 
-// Example - combining this functionality with `static_if`:
-void example1()
+// The above code snippet is very clear and straightforward... it
+// would be nice to be able to do the same for a compile-time buffer.
+
+// Turns out we can, thanks to "type-value encoding".
+// Remember the `bool_v` constexpr template variable?
+// We can do the same with `std::size_t`.
+
+template <std::size_t TX>
+using sz_ = std::integral_constant<std::size_t, TX>;
+
+template <std::size_t TX>
+constexpr sz_<TX> sz_v{};
+
+// We now have a way of wrapping arbitrary `std::size_t` in unique
+// compile-time types.
+
+// Using `for_args` we can iterate over those values:
+void run_compiletime_tests()
 {
-    // Example: calling diffrent functions depending on a type size
-    // threshold.
-
-    auto init_small_object_storage = [](auto)
-    { /* ... */ };
-
-    auto init_big_object_storage = [](auto)
-    { /* ... */ };
-
     for_args(
-        [&](auto t)
+        [](auto n)
         {
-            using unwrapped = unwrap<decltype(t)>;
+            buffer<n> b;
 
-            static_if(bool_v<(sizeof(unwrapped) < 16)>)
-                .then([&]
-                    {
-                        init_small_object_storage(t);
-                    })
-                .else_([&]
-                    {
-                        init_big_object_storage(t);
-                    })();
+            b.allocate();
+            // perform_test(b);
+            b.deallocate();
         },
-        type<int>, type<float>, type<double>, // .
-        type<std::array<double, 16>>);
+        sz_v<8>, sz_v<16>, sz_v<32>, sz_v<64>, sz_v<128>, // .
+        sz_v<256>, sz_v<512>, sz_v<1024>);
 }
+
+// It's not as pretty as the run-time version, but the code is very
+// clear and readable. It is easy to see that we're iterating over
+// a series of values and performing an action on them.
+
+// With some additional abstractions, the code could look like this:
+/*
+void run_compiletime_tests()
+{
+    for_values<std::size_t, 8, 16, 32, 64, 128, 256, 512, 1024>(
+        [](auto n)
+        {
+            buffer<n> b;
+
+            b.allocate();
+            // perform_test(b);
+            b.deallocate();
+        });
+}
+*/
+
+// In the next code segment, we'll see how `static_if` and `for_args`
+// work well together.
 
 int main()
 {
-    example0();
-    example1();
+    run_compiletime_tests();
 }
-
-// Iterating over a compile-time collection using `for_args` has,
-// however, many annoying limitations:
-/*
-    * It is not possible to get the current iteration index.
-
-    * It is not possible to produce a result value.
-
-    * No `break` and `continue`.
-*/
-
-// Let's look at a complete compile-time `for...each` loop counterpart
-// in the next code segment, which can be entirely implemented in
-// C++14.
