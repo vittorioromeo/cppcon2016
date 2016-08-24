@@ -9,51 +9,22 @@
 
 // Here's `static_if` in action:
 
-struct banana
-{
-    void eat()
-    {
-    }
-};
+// clang-format off
 
-struct peanuts
-{
-    void eat()
-    {
-    }
-};
+struct banana   { void eat() { /* ... */ } };
+struct peanuts  { void eat() { /* ... */ } };
+struct water    { void drink() { /* ... */ } };
+struct juice    { void drink() { /* ... */ } };
 
-struct water
-{
-    void drink()
-    {
-    }
-};
+template <typename T> constexpr bool is_solid{false};
+template <>           constexpr bool is_solid<banana>{true};
+template <>           constexpr bool is_solid<peanuts>{true};
 
-struct juice
-{
-    void drink()
-    {
-    }
-};
+template <typename T> constexpr bool is_liquid{false};
+template <>           constexpr bool is_liquid<water>{true};
+template <>           constexpr bool is_liquid<juice>{true};
 
-template <typename T>
-constexpr bool is_solid{false};
-
-template <>
-constexpr bool is_solid<banana>{true};
-
-template <>
-constexpr bool is_solid<peanuts>{true};
-
-template <typename T>
-constexpr bool is_liquid{false};
-
-template <>
-constexpr bool is_liquid<water>{true};
-
-template <>
-constexpr bool is_liquid<juice>{true};
+// clang-format on
 
 template <typename T>
 auto consume(T&& x)
