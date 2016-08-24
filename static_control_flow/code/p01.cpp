@@ -8,7 +8,6 @@
     See the slides before the code segments.
 */
 
-
 #include <utility>
 #include <type_traits>
 
