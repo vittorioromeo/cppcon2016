@@ -16,35 +16,35 @@ struct peanuts  { void eat() { /* ... */ } };
 struct water    { void drink() { /* ... */ } };
 struct juice    { void drink() { /* ... */ } };
 
-template <typename T> constexpr bool is_solid{false};
-template <>           constexpr bool is_solid<banana>{true};
-template <>           constexpr bool is_solid<peanuts>{true};
+template <typename T> constexpr auto is_solid = bool_v<false>;
+template <>           constexpr auto is_solid<banana> = bool_v<true>;
+template <>           constexpr auto is_solid<peanuts> = bool_v<true>;
 
-template <typename T> constexpr bool is_liquid{false};
-template <>           constexpr bool is_liquid<water>{true};
-template <>           constexpr bool is_liquid<juice>{true};
+template <typename T> constexpr auto is_liquid = bool_v<false>;
+template <>           constexpr auto is_liquid<water> = bool_v<true>;
+template <>           constexpr auto is_liquid<juice> = bool_v<true>;
 
 // clang-format on
 
 template <typename T>
 auto consume(T&& x)
 {
-    static_if(bool_v<is_solid<T>>)
+    static_if(is_solid<T>)
         .then([](auto&& y)
-            {
-                y.eat();
-                std::cout << "eating solid\n";
-            })
-        .else_if(bool_v<is_liquid<T>>)
+              {
+                  y.eat();
+                  std::cout << "eating solid\n";
+              })
+        .else_if(is_liquid<T>)
         .then([](auto&& y)
-            {
-                y.drink();
-                std::cout << "drinking liquid\n";
-            })
+              {
+                  y.drink();
+                  std::cout << "drinking liquid\n";
+              })
         .else_([](auto&&)
-            {
-                std::cout << "cannot consume\n";
-            })(FWD(x));
+               {
+                   std::cout << "cannot consume\n";
+               })(FWD(x));
 }
 
 int main()

@@ -63,8 +63,8 @@ void decrement_kindof(T& value)
 }
 */
 
-// By using `fit::compress` and `fit::apply` it's also very easy
-// to replicate `static_for`'s functionality. More powerful results
+// By using `fit::compress` and `fit::apply` it's also easy to begin
+// replicating `static_for`'s functionality. More powerful results
 // can be achieved by properly using all the library's features.
 /*
     compress(apply, for_body)(x, y, z)
