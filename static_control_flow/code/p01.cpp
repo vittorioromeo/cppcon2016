@@ -2,11 +2,11 @@
 // License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
-
-
-/*
-    See the slides before the code segments.
-*/
+// +-----------------------------------------------+
+// |                                               |
+// |         `static_if` - implementation          |
+// |                                               |
+// +-----------------------------------------------+
 
 #include <utility>
 #include <type_traits>

@@ -2,7 +2,13 @@
 // License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
-
+// +-----------------------------------------------+
+// |                                               |
+// |                  Conclusion                   |
+// |            (assembly comparisons)             |
+// |         (production-ready solutions)          |
+// |                                               |
+// +-----------------------------------------------+
 
 // For our last code segment, let's take a look at the generated
 // assembly and at existing production-ready solutions.
@@ -22,6 +28,8 @@
 // You can fork and use the implementations shown here, create your
 // own from scratch, or use any of the following production-ready
 // solutions.
+
+// (Obviously, if you have access to C++17, use `if constexpr`!)
 
 // Louis Dionne's "boost::hana", which hopefully needs no
 // introduction, has extremely powerful constructs both for

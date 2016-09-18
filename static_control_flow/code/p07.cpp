@@ -2,7 +2,11 @@
 // License: AFL 3.0 | https://opensource.org/licenses/AFL-3.0
 // http://vittorioromeo.info | vittorio.romeo@outlook.com
 
-
+// +-----------------------------------------------+
+// |                                               |
+// |         `static_for` - implementation         |
+// |                                               |
+// +-----------------------------------------------+
 
 #include <iostream>
 #include "./impl/static_if.hpp"
