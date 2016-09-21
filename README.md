@@ -8,21 +8,3 @@ Repository for my [CppCon 2016](https://cppcon.org) sessions.
 * [cppcon2016.sched page](https://cppcon2016.sched.org/event/750863265279a3e05b036ba61d38ebaf)
 
 * ~~YouTube video~~ *(not yet available)*
-
-
-
-## TODO
-
-* Decide:
-    * Introduce `if constexpr(...)` before `static_for`?
-
-* Check TODO on private repo
-
-* TODO: convert everything to slides (?)
-
-* If constexpr or constexpr if?
-* Add Bloomberg notice
-* Review everything
-* Write `if constexpr(...)` code segments
-* Rebuild `.asm` files
-* Rehearse
