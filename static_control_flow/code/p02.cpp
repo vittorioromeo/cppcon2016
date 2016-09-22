@@ -12,7 +12,7 @@
 
 // Here's an additional example of something I've encountered during
 // coding: I was writing a resizable generic buffer, and had to deal
-// with move constructors:
+// with movable types in a particular way:
 
 template <typename T, typename TAllocator>
 void grow(std::size_t old_capacity, std::size_t /* new_capacity */)

@@ -60,3 +60,25 @@ int main()
     consume(int{});
     consume(float{});
 }
+
+/*
+// The code above would look as follows in C++17:
+template <typename T>
+auto consume(T&& x)
+{
+    if constexpr(is_solid<T>)
+    {
+        x.eat();
+        std::cout << "eating solid\n";
+    }
+    else if constexpr(is_liquid<T>)
+    {
+        x.drink();
+        std::cout << "drinking liquid\n";
+    }
+    else
+    {
+        std::cout << "cannot consume\n";
+    }
+}
+*/

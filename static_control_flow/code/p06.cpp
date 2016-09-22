@@ -23,6 +23,9 @@
     * Intuitive `break` and `continue` constructs.
 */
 
+// (One possible drawback is, however, a bigger impact on compilation
+// times, as the implementation requires recursion.)
+
 // Before diving into `static_for`'s implementation, let's take a
 // look at an example.
 

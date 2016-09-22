@@ -188,7 +188,7 @@ namespace impl
     template <typename TFunctionToCall>
     struct static_if_result : TFunctionToCall
     {
-        // Perfect-forward the function in the result instance.
+        // Perfectly-forward the function in the result instance.
         template <typename TFFwd>
         static_if_result(TFFwd&& f) noexcept : TFunctionToCall(FWD(f))
         {
